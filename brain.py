@@ -6,11 +6,9 @@ from scipy.spatial import Delaunay
 
 pygame.init()
 size = (1920,1080)
+
 screen = pygame.display.set_mode(size, pygame.NOFRAME)
-#screen = pygame.Surface(size)
-#clock = pygame.time.Clock()
 pygame.display.iconify()
-#size = (700,700)
 
 now = datetime.datetime.now()
 
@@ -77,25 +75,13 @@ def gen_grid(w,h,b_x,b_y,cell_size,variance,rand_fn):
     return np.array(points)
 
 
-#nrx = map(lambda z: z.rgb, (list(SECOND_COLOR.range_to(FIRST_COLOR,color_steps))))
-#gradi_X = list(SECOND_COLOR.range_to(FIRST_COLOR,color_steps))
-#gradi_Y = list(SECOND_COLOR.range_to(FIRST_COLOR,color_steps))
-
 gradi_X = calculate_gradient(FIRST_COLOR.rgb, SECOND_COLOR.rgb, color_steps)
 gradi_Y = calculate_gradient(THIRD_COLOR.rgb, FOURTH_COLOR.rgb, color_steps)
 
 VARIANCE = remap(now.hour, 0, 24, 20, 155)
 CELL_SIZE= remap(now.hour, 0, 24, 390, 20)
-#gradi_X = map(lambda y: map(lambda x: rgbMap(x),y), map(lambda z: z.rgb, (list(SECOND_COLOR.range_to(FIRST_COLOR,color_steps)))))
-#gradi_Y = map(lambda y: map(lambda x: rgbMap(x),y), map(lambda z: z.rgb, (list(FIRST_COLOR.range_to(SECOND_COLOR,color_steps)))))
-#cSpace = np.outer(gradi_X,gradi_Y)
 
-while not done:
-    # for event in pygame.event.get():
-    #         if event.type == pygame.QUIT:
-    #             done = True
-
-    #screen.fill(WHITE)
+def genBackground():
     points = gen_grid(size[0],size[1],BLEED_X,BLEED_Y,CELL_SIZE,VARIANCE,RAND_FN)
     tri = Delaunay(points).simplices
     for i in points[tri]:
@@ -103,17 +89,13 @@ while not done:
         currentY = int(normalY(centerY(i)*color_steps))
         xColor = gradi_X[currentX]
         yColor = gradi_Y[currentY]
-        #intColor = midColor(xColor,yColor)
-        #colorChoice = map(rgbMap,intColor.rgb)
-        #colorChoice = cSpace[int(normalX(centerX(i)*100)),int(normalY(centerY(i)*100))]
         intColor = calculate_gradient(xColor,yColor,3)[1]
         colorChoice = map(rgbMap,intColor)
         pygame.gfxdraw.filled_polygon(screen, i, colorChoice)
 
     pygame.display.flip()
-    done = True
-    #clock.tick(1)
 
+genBackground()
 path = tempfile.gettempdir()+"\screenshot.jpeg"
 pygame.image.save(screen, path)
 ctypes.windll.user32.SystemParametersInfoA(20, 0, path, 0)

@@ -12,6 +12,7 @@ pygame.display.iconify()
 
 now = datetime.datetime.now()
 
+path = tempfile.gettempdir()+"\screenshot.jpeg"
 color_steps = 20 
 SECOND_COLOR = Color("#FF02F6")
 FIRST_COLOR = Color("#FEBF01")
@@ -24,7 +25,6 @@ CELL_SIZE = 190
 VARIANCE = 50
 RAND_FN = random.random
 
-done = False
 
 def remap(OldValue, OldMin, OldMax, NewMin, NewMax):
     return (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin
@@ -75,20 +75,18 @@ def gen_grid(w,h,b_x,b_y,cell_size,variance,rand_fn):
     return np.array(points)
 
 
+VARIANCE = remap(now.hour, 0, 24, 20, 155)
+CELL_SIZE= remap(now.hour, 0, 24, 390, 20)
 gradi_X = calculate_gradient(FIRST_COLOR.rgb, SECOND_COLOR.rgb, color_steps)
 gradi_Y = calculate_gradient(THIRD_COLOR.rgb, FOURTH_COLOR.rgb, color_steps)
 
-VARIANCE = remap(now.hour, 0, 24, 20, 155)
-CELL_SIZE= remap(now.hour, 0, 24, 390, 20)
 
-def genBackground():
-    points = gen_grid(size[0],size[1],BLEED_X,BLEED_Y,CELL_SIZE,VARIANCE,RAND_FN)
+def genBackground(width=size[0],height=size[1],b_x=BLEED_X,b_y=BLEED_Y,cell_s=CELL_SIZE,var=VARIANCE,r=RAND_FN):
+    points = gen_grid(width,height,b_x,b_y,cell_s,var,r)
     tri = Delaunay(points).simplices
     for i in points[tri]:
-        currentX = int(normalX(centerX(i)*color_steps))
-        currentY = int(normalY(centerY(i)*color_steps))
-        xColor = gradi_X[currentX]
-        yColor = gradi_Y[currentY]
+        currentX, currentY = int(normalX(centerX(i)*color_steps)), int(normalY(centerY(i)*color_steps))
+        xColor  , yColor   = gradi_X[currentX], gradi_Y[currentY]
         intColor = calculate_gradient(xColor,yColor,3)[1]
         colorChoice = map(rgbMap,intColor)
         pygame.gfxdraw.filled_polygon(screen, i, colorChoice)
@@ -96,7 +94,6 @@ def genBackground():
     pygame.display.flip()
 
 genBackground()
-path = tempfile.gettempdir()+"\screenshot.jpeg"
 pygame.image.save(screen, path)
 ctypes.windll.user32.SystemParametersInfoA(20, 0, path, 0)
 

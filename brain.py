@@ -1,16 +1,20 @@
-import math, random, ctypes, tempfile, datetime
-import scipy.misc
-import numpy as np
+from scipy.spatial import Delaunay
 from scipy.ndimage import rotate
 from skimage.draw import polygon
+from scipy.misc import toimage
+from tempfile import gettempdir
+from datetime import datetime
+from random import random
 from colour import Color
-from scipy.spatial import Delaunay
+from math import floor
+import numpy as np
+import ctypes
 
 size = (1920,1080,3)
 
-now = datetime.datetime.now()
+now = datetime.now()
 
-path = tempfile.gettempdir()+"\screenshot.png"
+path = gettempdir()+"\screenshot.png"
 color_steps = 20 
 SECOND_COLOR = Color("#FF02F6")
 FIRST_COLOR = Color("#FEBF01")
@@ -22,7 +26,7 @@ BLEED_X = 200
 BLEED_Y = 200
 CELL_SIZE = 190
 VARIANCE = 50
-RAND_FN = random.random
+RAND_FN = random
 
 
 def remap(OldValue, OldMin, OldMax, NewMin, NewMax):
@@ -122,14 +126,14 @@ def gen_grid(w,h,b_x,b_y,cell_size,variance,rand_fn):
     points = []
     for i in xrange(-b_x,w,cell_size):
         for j in xrange(-b_y,h,cell_size):
-            points.append([int(math.floor((i + half_cell) + (rand_fn() * variance*2 - variance))),
-                           int(math.floor((j + half_cell) + (rand_fn() * variance*2 - variance)))])
+            points.append([int(floor((i + half_cell) + (rand_fn() * variance*2 - variance))),
+                           int(floor((j + half_cell) + (rand_fn() * variance*2 - variance)))])
 
     return np.array(points)
 
 
-VARIANCE = remap(now.hour, 0, 24, 20, 155)
-CELL_SIZE= remap(now.hour, 0, 24, 390, 20)
+VARIANCE = remap(now.hour, 0, 24, 20, 80)
+CELL_SIZE= remap(now.hour, 0, 24, 390, 40)
 gradi_X = calculate_gradient(FIRST_COLOR.rgb, SECOND_COLOR.rgb, color_steps)
 gradi_Y = calculate_gradient(THIRD_COLOR.rgb, FOURTH_COLOR.rgb, color_steps)
 
@@ -151,9 +155,15 @@ def genBackground(width=size[0],height=size[1],b_x=BLEED_X,b_y=BLEED_Y,cell_s=CE
         cc = np.clip(cc,0,width-1)
         bitmapPhoto[cc,rr]=colorChoice
 
+def renderImage():
+    genBackground()
+    img = toimage(bitmapPhoto, mode='RGB',channel_axis=2).rotate(-90,expand=True)
+    img.save(path)
+    ctypes.windll.user32.SystemParametersInfoA(20, 0, path, 0)
 
-genBackground()
-img = scipy.misc.toimage(bitmapPhoto, mode='RGB',channel_axis=2).rotate(90,expand=True)
-img.save(path)
+def testImages(C=80, V=40):
+    genBackground(cell_s=C, var=V)
+    img = toimage(bitmapPhoto, mode='RGB',channel_axis=2).rotate(90,expand=True)
+    img.show()
 
-ctypes.windll.user32.SystemParametersInfoA(20, 0, path, 0)
+renderImage()

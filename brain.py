@@ -1,23 +1,22 @@
-import pygame, pygame.gfxdraw
 import math, random, ctypes, tempfile, datetime
+import scipy.misc
 import numpy as np
+from scipy.ndimage import rotate
+from skimage.draw import polygon
 from colour import Color
 from scipy.spatial import Delaunay
 
-pygame.init()
-size = (1920,1080)
-
-screen = pygame.display.set_mode(size, pygame.NOFRAME)
-pygame.display.iconify()
+size = (1920,1080,3)
 
 now = datetime.datetime.now()
 
-path = tempfile.gettempdir()+"\screenshot.jpeg"
+path = tempfile.gettempdir()+"\screenshot.png"
 color_steps = 20 
 SECOND_COLOR = Color("#FF02F6")
 FIRST_COLOR = Color("#FEBF01")
 FOURTH_COLOR = Color("#000000")
 THIRD_COLOR = Color("#FFFFFF")
+bitmapPhoto = np.zeros(size, 'uint8')
 
 BLEED_X = 200
 BLEED_Y = 200
@@ -136,19 +135,25 @@ gradi_Y = calculate_gradient(THIRD_COLOR.rgb, FOURTH_COLOR.rgb, color_steps)
 
 
 def genBackground(width=size[0],height=size[1],b_x=BLEED_X,b_y=BLEED_Y,cell_s=CELL_SIZE,var=VARIANCE,r=RAND_FN):
+    global bitmapPhoto
     points = gen_grid(width,height,b_x,b_y,cell_s,var,r)
     tri = Delaunay(points).simplices
+
     for i in points[tri]:
         currentX, currentY = int(normalX(centerX(i)*color_steps)), int(normalY(centerY(i)*color_steps))
         xColor  , yColor   = gradi_X[currentX], gradi_Y[currentY]
         intColor = calculate_gradient(xColor,yColor,3)[1]
         colorChoice = map(rgbMap,intColor)
-        pygame.gfxdraw.filled_polygon(screen, i, colorChoice)
+        c = i[:,0]
+        r = i[:,1]
+        rr,cc = polygon(r,c)
+        rr = np.clip(rr,0,height-1)
+        cc = np.clip(cc,0,width-1)
+        bitmapPhoto[cc,rr]=colorChoice
 
-    pygame.display.flip()
 
 genBackground()
-pygame.image.save(screen, path)
-ctypes.windll.user32.SystemParametersInfoA(20, 0, path, 0)
+img = scipy.misc.toimage(bitmapPhoto, mode='RGB',channel_axis=2).rotate(90,expand=True)
+img.save(path)
 
-pygame.quit()
+ctypes.windll.user32.SystemParametersInfoA(20, 0, path, 0)

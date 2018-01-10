@@ -18,8 +18,8 @@ path = gettempdir()+"\screenshot.png"
 color_steps = 20 
 SECOND_COLOR = Color("#FF02F6")
 FIRST_COLOR = Color("#FEBF01")
-FOURTH_COLOR = Color("#000000")
-THIRD_COLOR = Color("#FFFFFF")
+THIRD_COLOR = Color("#444444")
+FOURTH_COLOR = Color("#FFFFFF")
 bitmapPhoto = np.zeros(size, 'uint8')
 
 BLEED_X = 200
@@ -157,7 +157,7 @@ def genBackground(width=size[0],height=size[1],b_x=BLEED_X,b_y=BLEED_Y,cell_s=CE
 
 def renderImage():
     genBackground()
-    img = toimage(bitmapPhoto, mode='RGB',channel_axis=2).rotate(-90,expand=True)
+    img = toimage(bitmapPhoto, mode='RGB',channel_axis=2).rotate(90,expand=True)
     img.save(path)
     ctypes.windll.user32.SystemParametersInfoA(20, 0, path, 0)
 

@@ -1,6 +1,7 @@
 from scipy.spatial import Delaunay
 from skimage.draw import polygon
 from scipy.misc import toimage
+from PIL import Image
 from tempfile import gettempdir
 from datetime import datetime
 from random import random
@@ -174,18 +175,14 @@ def genBackground(width=size[0],
 
 def renderImage():
     genBackground()
-    img = toimage(bitmapPhoto, mode='RGB', channel_axis=2).rotate(90,
-                                                                  expand=True
-                                                                  )
+    img = Image.fromarray(bitmapPhoto, mode='RGB').rotate(90,expand=True)
     img.save(path)
     ctypes.windll.user32.SystemParametersInfoW(20, 0, path, 0)
 
 
 def testImages(C=80, V=40):
     genBackground(cell_s=C, var=V)
-    img = toimage(bitmapPhoto, mode='RGB', channel_axis=2).rotate(90,
-                                                                  expand=True
-                                                                  )
+    img = Image.fromarray(bitmapPhoto, mode='RGB').rotate(90,expand=True)
     img.show()
 
 

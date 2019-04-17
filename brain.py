@@ -1,6 +1,5 @@
 from scipy.spatial import Delaunay
 from skimage.draw import polygon
-from scipy.misc import toimage
 from PIL import Image
 from tempfile import gettempdir
 from datetime import datetime
@@ -11,16 +10,18 @@ import numpy as np
 import ctypes
 
 size = (1920, 1080, 3)
+bitmapPhoto = np.zeros(size, 'uint8')
 
 now = datetime.now()
 
 path = gettempdir()+"\screenshot.png"  # noqa: W605
+
 color_steps = 20
 SECOND_COLOR = Color("#FF02F6")
 FIRST_COLOR = Color("#FEBF01")
 THIRD_COLOR = Color("#444444")
 FOURTH_COLOR = Color("#FFFFFF")
-bitmapPhoto = np.zeros(size, 'uint8')
+
 
 BLEED_X = 200
 BLEED_Y = 200
@@ -143,8 +144,6 @@ def gen_grid(w, h, b_x, b_y, cell_size, variance, rand_fn):
 
 VARIANCE = remap(now.hour, 0, 24, 20, 80)
 CELL_SIZE = remap(now.hour, 0, 24, 390, 40)
-gradi_X = calculate_gradient(FIRST_COLOR.rgb, SECOND_COLOR.rgb, color_steps)
-gradi_Y = calculate_gradient(THIRD_COLOR.rgb, FOURTH_COLOR.rgb, color_steps)
 
 
 def genBackground(width=size[0],
@@ -153,9 +152,16 @@ def genBackground(width=size[0],
                   b_y=BLEED_Y,
                   cell_s=CELL_SIZE,
                   var=VARIANCE,
-                  r=RAND_FN
+                  r=RAND_FN,
+                  first_c = FIRST_COLOR,
+                  second_c = SECOND_COLOR,
+                  third_c = THIRD_COLOR,
+                  fourth_c = FOURTH_COLOR,
                   ):
     global bitmapPhoto
+
+    gradi_X = calculate_gradient(first_c.rgb, second_c.rgb, color_steps)
+    gradi_Y = calculate_gradient(third_c.rgb, fourth_c.rgb, color_steps)
     points = gen_grid(width, height, b_x, b_y, cell_s, var, r)
     tri = Delaunay(points).simplices
 
@@ -175,15 +181,42 @@ def genBackground(width=size[0],
 
 def renderImage():
     genBackground()
-    img = Image.fromarray(bitmapPhoto, mode='RGB').rotate(90,expand=True)
+    img = Image.fromarray(bitmapPhoto, mode='RGB').rotate(90, expand=True)
     img.save(path)
     ctypes.windll.user32.SystemParametersInfoW(20, 0, path, 0)
 
 
 def testImages(C=80, V=40):
     genBackground(cell_s=C, var=V)
-    img = Image.fromarray(bitmapPhoto, mode='RGB').rotate(90,expand=True)
+    img = Image.fromarray(bitmapPhoto, mode='RGB').rotate(90, expand=True)
     img.show()
+
+def externalCall(config_dictionary,
+                 save_bg=False
+                 ):
+
+    global bitmapPhoto
+    size = (config_dictionary["WIDTH"], config_dictionary["HEIGHT"], 3)
+    bitmapPhoto = np.zeros(size, 'uint8')
+    genBackground(config_dictionary["WIDTH"],
+                  config_dictionary["HEIGHT"],
+                  config_dictionary["BLEED_X"],
+                  config_dictionary["BLEED_Y"],
+                  config_dictionary["CELL_SIZE"],
+                  config_dictionary["VARIANCE"],
+                  config_dictionary["RAND_FN"],
+                  Color(config_dictionary["FIRST_COLOR"]),
+                  Color(config_dictionary["SECOND_COLOR"]),
+                  Color(config_dictionary["THIRD_COLOR"]),
+                  Color(config_dictionary["FOURTH_COLOR"])
+                  )
+    img = Image.fromarray(bitmapPhoto, mode='RGB').rotate(90, expand=True)
+    if(save_bg):
+        print("saving bg")
+        img.save(path)
+        ctypes.windll.user32.SystemParametersInfoW(20, 0, path, 0)
+    else:
+        img.show()
 
 
 renderImage()

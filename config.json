@@ -1,0 +1,14 @@
+{
+    "WIDTH": 1920,
+    "HEIGHT": 1080,
+    "BLEED_X": 200,
+    "BLEED_Y": 200,
+    "CELL_SIZE": 190,
+    "VARIANCE": 50,
+    "RAND_FN": "random",
+    "color_steps": 20,
+    "FIRST_COLOR": "#FEBF01",
+    "SECOND_COLOR": "#FF02F6",
+    "THIRD_COLOR": "#FFFFFF",
+    "FOURTH_COLOR": "#000000"
+}

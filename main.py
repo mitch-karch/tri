@@ -30,6 +30,6 @@ def main():
     if(default_config["RAND_FN"] == "random"):
         default_config["RAND_FN"] = random
 
-    externalCall(default_config, save_bg=False)
+    externalCall(default_config, save_bg=True)
 
 main()

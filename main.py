@@ -21,15 +21,19 @@ default_config = {
 
 def main():
     global default_config
-    if len(sys.argv) == 2:
-        # Expected argument:
-        # Name of JSON file
-        with open(sys.argv[1]) as json_file:
-            default_config = json.load(json_file)
+    loadConfig()
 
     if(default_config["RAND_FN"] == "random"):
         default_config["RAND_FN"] = random
 
     externalCall(default_config, save_bg=True)
+
+def loadConfig():
+    global default_config
+    if len(sys.argv) == 2:
+        # Expected argument:
+        # Name of JSON file
+        with open(sys.argv[1]) as json_file:
+            default_config = json.load(json_file)
 
 main()
